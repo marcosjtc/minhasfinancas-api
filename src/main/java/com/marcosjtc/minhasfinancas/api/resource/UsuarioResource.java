@@ -1,7 +1,12 @@
 package com.marcosjtc.minhasfinancas.api.resource;
 
+import java.math.BigDecimal;
+import java.util.Optional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,12 +16,16 @@ import com.marcosjtc.minhasfinancas.api.dto.UsuarioDTO;
 import com.marcosjtc.minhasfinancas.exception.ErroAutenticacao;
 import com.marcosjtc.minhasfinancas.exception.RegraNegocioException;
 import com.marcosjtc.minhasfinancas.model.entity.Usuario;
+import com.marcosjtc.minhasfinancas.service.LancamentoService;
 import com.marcosjtc.minhasfinancas.service.UsuarioService;
+
+import lombok.RequiredArgsConstructor;
 
 //Retorno dos métodos serão o corpo da resposta que está enviando
 //Com estas notações não precisa a tag @AuotWired. As tags abaixo fazem a injeção.
 @RestController
 @RequestMapping("/api/usuarios") // Todas as requisições que começãrem com "api/usuarios" entram neste controller
+@RequiredArgsConstructor
 public class UsuarioResource {
 	
 	//Mapeamento para o método get para a url especificada.
@@ -25,12 +34,16 @@ public class UsuarioResource {
 		return "hello world";
 	} */
 	
-	private UsuarioService service;
+	private final UsuarioService service;
+	private final LancamentoService lancamentoService;
 	
 	//Construtor para injeção de dependência
-	public UsuarioResource(UsuarioService service) {
-		this.service = service;
-	}
+	//Spring injeta os dois parâmetros
+	//Notation @RequiredArgsConstructor elimina o método abaixo e injeta os objetos.
+	//Tem que colocar a palavra final nas variáveis acima
+	//public UsuarioResource(UsuarioService service) {
+	//	this.service = service;
+	//}
 	
 	//Há um problema pois já existe um @PostMapping para a raiz.
 	//Está sendo tratado pelo método salvar
@@ -69,6 +82,19 @@ public class UsuarioResource {
 		}
 		
 	}
+	
+ @GetMapping("{id}/saldo")
+	public ResponseEntity obterSaldo(@PathVariable("id") Long id) {
+		
+		Optional<Usuario> usuario = service.obterPorId(id);
+		
+		if(!usuario.isPresent()) {
+			return new ResponseEntity(HttpStatus.NOT_FOUND);
+		}
+		
+		BigDecimal saldo = lancamentoService.obterSaldoPorUsuario(id);
+		return ResponseEntity.ok(saldo);
+	} 
 	
 	
 

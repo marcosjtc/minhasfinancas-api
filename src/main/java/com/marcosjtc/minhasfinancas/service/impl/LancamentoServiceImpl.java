@@ -3,6 +3,7 @@ package com.marcosjtc.minhasfinancas.service.impl;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.marcosjtc.minhasfinancas.exception.RegraNegocioException;
 import com.marcosjtc.minhasfinancas.model.entity.Lancamento;
 import com.marcosjtc.minhasfinancas.model.enums.StatusLancamento;
+import com.marcosjtc.minhasfinancas.model.enums.TipoLancamento;
 import com.marcosjtc.minhasfinancas.model.repository.LancamentoRepository;
 import com.marcosjtc.minhasfinancas.service.LancamentoService;
 
@@ -114,6 +116,29 @@ public class LancamentoServiceImpl implements LancamentoService {
 			throw new RegraNegocioException("Informe um Tipo de Lançamento");
 		}
 		
+	}
+
+	@Override
+	public Optional<Lancamento> obterPorId(Long id) {
+		// TODO Auto-generated method stub
+		return repository.findById(id);
+	}
+
+	@Override
+	@Transactional (readOnly = true)
+		public BigDecimal obterSaldoPorUsuario(Long id) {
+		// TODO Auto-generated method stub
+		BigDecimal receitas = repository.obterSaldoPorTipoLancamentoEUsuario(id, TipoLancamento.RECEITA);
+		BigDecimal despesas =repository.obterSaldoPorTipoLancamentoEUsuario(id, TipoLancamento.DESPESA);
+		
+		if (receitas == null) {
+			receitas = BigDecimal.ZERO;
+		}
+		if (despesas == null) {
+			despesas = BigDecimal.ZERO;
+		}
+		
+		return receitas.subtract(despesas);
 	}
 
 }
